@@ -56,3 +56,84 @@ export const viewNote = async (req, res) => {
     return res.status(500).send({ success: false, message: error.message });
   }
 };
+
+export const updateNote = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+    const { name, description } = req.body;
+
+    if (!noteId) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Note ID is required" });
+    }
+
+    if (!name || !description) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Please enter all fields" });
+    }
+
+    const note = await Prisma.notes.findUnique({
+      where: {
+        id: noteId,
+      },
+    });
+
+    if (!note) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Note not found" });
+    }
+
+    const updatedNote = await Prisma.notes.update({
+      where: { id: noteId }, // ensure ID is a number
+      data: {
+        name,
+        body: description,
+      },
+    });
+
+    return res.status(200).send({
+      success: true,
+      data: updatedNote,
+      message: "Note updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+export const deleteNote = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+
+    if (!noteId) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Note ID is required" });
+    }
+
+    const note = await Prisma.notes.findUnique({
+      where: {
+        id: noteId,
+      },
+    });
+
+    if (!note) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Note not found" });
+    }
+
+    await Prisma.notes.delete({
+      where: { id: noteId },
+    });
+
+    return res
+      .status(200)
+      .send({ success: true, message: "Note deleted successfully" });
+  } catch (error) {
+    return res.status(500).send({ success: false, message: error.message });
+  }
+};
